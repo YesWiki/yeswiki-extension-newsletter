@@ -42,7 +42,7 @@ if ($type != 'wiki') {
         foreach ($id as $formid) {
             $formValues = baz_valeurs_formulaire($formid);
             $results[$formid]['name'] = $formValues['bn_label_nature'];
-            $results[$formid]['entries'] = baz_requete_recherche_fiches('', 'alphabetique', $formid, '', 1, '', '', true, '');
+            $results[$formid]['entries'] = baz_requete_recherche_fiches('', 'alphabetique', $formid, '', 1);
             $results[$formid]['entries'] = searchResultstoArray($results[$formid]['entries'], array(), $formValues);
             // tri des fiches
             $GLOBALS['ordre'] = 'asc';
@@ -58,20 +58,23 @@ $output = '';
 if (isset($_POST["page"])) {
     if (!empty($_POST['antispam'])) {
         if (!empty($_POST["newsletter-title"])) {
-          $fiche = array();
-          // correspondance du titre de la newsletter avec le titre de la fiche bazar
-          $fiche['bf_titre'] = $_POST["newsletter-title"];
+            $fiche = array();
+            // correspondance du titre de la newsletter avec le titre de la fiche bazar
+            $fiche['bf_titre'] = $_POST["newsletter-title"];
 
-          // correspondance de l'id du formulaire de la newsletter
-          $fiche['id_typeannonce'] = $idnewsletter;
+            // correspondance de l'id du formulaire de la newsletter
+            $fiche['id_typeannonce'] = $idnewsletter;
 
-          $fiche['bf_contenu'] = '';
-          foreach ($_POST["page"] as $page) {
-              $fiche['bf_contenu'] .= '<article>'. baz_voir_fiche(0, $page) . '</article>';
-          }
+            $fiche['bf_contenu'] = '';
+            foreach ($_POST["page"] as $page) {
+                $fiche['bf_contenu'] .= '<article>'. baz_voir_fiche(0, $page) . '</article>';
+            }
 
-          baz_insertion_fiche($fiche);
-          $output = $this->Format('""<div class="alert alert-success">' . _t('NEWSLETTER_PAGE_CREATED') . ' !""' . "\n" . '{{button class="btn-primary" link="' . $pagename . '" text="' . _t('TAGS_GOTO_EBOOK_PAGE') . ' ' . $pagename . '"}}""</div>""' . "\n");
+            baz_insertion_fiche($fiche);
+            $output = $this->Format('""<div class="alert alert-success">'
+                . _t('NEWSLETTER_PAGE_CREATED') . ' !""' . "\n"
+                . '{{button class="btn-primary" link="' . $pagename . '" text="'
+                . _t('TAGS_GOTO_EBOOK_PAGE'). ' ' . $pagename . '"}}""</div>""' . "\n");
         } else {
             $output = '<div class="alert alert-danger">' . _t('TAGS_NO_TITLE_FOUND') . '</div>' . "\n";
         }
@@ -103,10 +106,13 @@ if (isset($_POST["page"])) {
         $sql .= ' WHERE latest="Y"
     				AND comment_on="" AND tag NOT LIKE "LogDesActionsAdministratives%" ';
 
-        $sql .= ' AND tag NOT IN (SELECT resource FROM ' . $this->GetConfigValue('table_prefix') . 'triples WHERE property="http://outils-reseaux.org/_vocabulary/type") ';
+        $sql .= ' AND tag NOT IN (SELECT resource FROM ' . $this->GetConfigValue('table_prefix')
+            . 'triples WHERE property="http://outils-reseaux.org/_vocabulary/type") ';
 
         if (!empty($taglist)) {
-            $sql .= ' AND tags.value IN (' . $taglist . ') AND tags.property = "http://outils-reseaux.org/_vocabulary/tag" AND tags.resource = tag';
+            $sql .= ' AND tags.value IN (' . $taglist . ')'
+                .' AND tags.property = "http://outils-reseaux.org/_vocabulary/tag"'
+                .' AND tags.resource = tag';
         }
 
         $sql .= ' ORDER BY tag ASC';
@@ -140,7 +146,19 @@ if (isset($_POST["page"])) {
     include_once 'includes/squelettephp.class.php';
     $template_export = new SquelettePhp('tools/ebook/presentation/templates/exportpages_table.tpl.html');
     $template_export->set(
-        array('pages' => $pages, 'entries' => $results, 'ebookstart' => $ebookstart, 'ebookend' => $ebookend, 'addinstalledpage' => $addinstalledpage, 'installedpages' => $installpagename, 'coverimageurl' => $coverimageurl, 'ebookpagename' => $ebookpagename, 'metadatas' => $this->page["metadatas"], 'selectedpages' => $selectedpages, 'url' => $this->href('', $this->GetPageTag()))
+        array(
+          'pages' => $pages,
+          'entries' => $results,
+          'ebookstart' => $ebookstart,
+          'ebookend' => $ebookend,
+          'addinstalledpage' => $addinstalledpage,
+          'installedpages' => $installpagename,
+          'coverimageurl' => $coverimageurl,
+          'ebookpagename' => $ebookpagename,
+          'metadatas' => $this->page["metadatas"],
+          'selectedpages' => $selectedpages,
+          'url' => $this->href('', $this->GetPageTag())
+        )
     );
     $output .= $template_export->analyser(); // affiche les resultats
 }
